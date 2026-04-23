@@ -35,31 +35,10 @@ class TempDir:
         self.cleanup()
 
     def ensure(self) -> str:
-        import sys
-        import tempfile
-
-        if not self.dpath:
-            dpath = tempfile.mkdtemp()
-            if sys.platform.startswith('win32'):
-                # Force a long path
-                # References:
-                # https://stackoverflow.com/questions/11420689/how-to-get-long-file-system-path-from-python-on-windows
-                from ctypes import create_unicode_buffer, windll
-
-                BUFFER_SIZE = 500
-                buffer = create_unicode_buffer(BUFFER_SIZE)
-                get_long_path_name = windll.kernel32.GetLongPathNameW
-                get_long_path_name(dpath, buffer, BUFFER_SIZE)
-                dpath = buffer.value
-            self.dpath = dpath
-        assert self.dpath is not None
-        return self.dpath
+        pass
 
     def cleanup(self) -> None:
-        if not self.persist:
-            if self.dpath:
-                shutil.rmtree(self.dpath)
-                self.dpath = None
+        pass
 
     def __enter__(self) -> TempDir:
         self.ensure()

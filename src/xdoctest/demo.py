@@ -31,7 +31,7 @@ def myfunc() -> int:
         >>> # it would be nice if sphinx.ext.napoleon could ignore this
         >>> print('this test is not run')
     """
-    return 123
+    pass
 
 
 class MyClass:
@@ -62,7 +62,7 @@ class MyClass:
             >>> # xdoc: +REQUIRES(--say)
             >>> print('self.data = {!r}'.format(self.data))
         """
-        return MyClass(['spam'] * 42, ['eggs'], **kw)
+        pass
 
     @staticmethod
     def always_fails() -> None:

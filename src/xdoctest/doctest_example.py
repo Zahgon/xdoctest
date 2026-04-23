@@ -111,7 +111,7 @@ class DoctestConfig(dict):
 
         def str_lower(x: str) -> str:
             # python2 fix
-            return str.lower(str(x))
+            pass
 
         add_argument_kws: list[tuple[list[str], dict[str, Any]]] = [
             (
@@ -612,7 +612,7 @@ class DocTest:
         Returns:
             str
         """
-        return f'{self.callname}:{self.num}'
+        pass
 
     @property
     def node(self) -> str:
@@ -622,7 +622,7 @@ class DocTest:
         Returns:
             str
         """
-        return f'{self.modpath}::{self.callname}:{self.num}'
+        pass
 
     @property
     def valid_testnames(self) -> set[str]:
@@ -632,10 +632,7 @@ class DocTest:
         Returns:
             Set[str]
         """
-        return {
-            self.callname,
-            self.unique_callname,
-        }
+        pass
 
     def wants(self) -> typing.Generator[str, None, None]:
         """
@@ -644,12 +641,7 @@ class DocTest:
         Yields:
             str
         """
-        self._parse()
-        # _parse ensures _parts is a list
-        assert self._parts is not None
-        for part in self._parts:
-            if part.want:
-                yield part.want
+        pass
 
     def format_parts(
         self,
@@ -950,9 +942,7 @@ class DocTest:
         Returns:
             bool
         """
-        # If everything was skipped, then there will be no stdout
-        assert self.logged_stdout is not None
-        return len(self.logged_stdout) > 0
+        pass
 
     def run(
         self, verbose: int | None | bool = None, on_error: str | None = None
@@ -1494,7 +1484,7 @@ class DocTest:
         """
         Alias for ``global_namespace`` for pytest 8.0 compatibility
         """
-        return self.global_namespace
+        pass
 
     @property
     def cmdline(self) -> str:
@@ -1504,16 +1494,11 @@ class DocTest:
         Returns:
             str:
         """
-        if self.mode == 'pytest':
-            return 'pytest ' + self.node
-        elif self.mode == 'native':
-            return f'python -m xdoctest {self.modpath} {self.unique_callname}'
-        else:
-            raise KeyError(self.mode)
+        pass
 
     @property
     def _block_prefix(self):
-        return 'ZERO-ARG' if self.block_type == 'zero-arg' else 'DOCTEST'
+        pass
 
     def _pre_run(self, verbose: bool | int) -> None:
         if verbose >= 1:

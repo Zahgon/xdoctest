@@ -563,47 +563,14 @@ class Directive(utils.NiceRepr):
             return '{}{}'.format(prefix, self.name)
 
     def _unpack_args(self, num: int) -> list[str] | None:
-        from xdoctest.utils import util_deprecation
-
-        util_deprecation.schedule_deprecation(
-            modname='xdoctest',
-            name='Directive._unpack_args',
-            type='method',
-            migration='there is no need to use this',
-            deprecate='1.0.0',
-            error='1.1.0',
-            remove='1.2.0',
-        )
-        nargs = self.args
-        assert nargs is not None
-        if len(nargs) != 1:
-            raise TypeError(
-                '{} directive expected exactly {} argument(s), got {}'.format(
-                    self.name, num, nargs
-                )
-            )
-        return self.args
+        pass
 
     def effect(
         self,
         argv: list[str] | None = None,
         environ: dict[str, str] | None = None,
     ) -> Effect:
-        from xdoctest.utils import util_deprecation
-
-        util_deprecation.schedule_deprecation(
-            modname='xdoctest',
-            name='Directive.effect',
-            type='method',
-            migration='Use Directive.effects instead',
-            deprecate='1.0.0',
-            error='1.1.0',
-            remove='1.2.0',
-        )
-        effects = self.effects(argv=argv, environ=environ)
-        if len(effects) > 1:
-            raise Exception('Old method cannot handle multiple effects')
-        return effects[0]
+        pass
 
     def effects(
         self,

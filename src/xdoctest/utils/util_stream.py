@@ -54,21 +54,14 @@ class TeeStringIO(io.StringIO):
             Needed for IPython.embed to work properly when this class is used
             to override stdout / stderr.
         """
-        return (
-            self.redirect is not None
-            and hasattr(self.redirect, 'isatty')
-            and self.redirect.isatty()
-        )
+        pass
 
     def fileno(self) -> int:
         """
         Returns underlying file descriptor of the redirected IOBase object
         if one exists.
         """
-        if self.redirect is not None:
-            return self.redirect.fileno()
-        else:
-            return super(TeeStringIO, self).fileno()
+        pass
 
     @property
     def encoding(self) -> str | None:  # type: ignore[override]
@@ -83,12 +76,7 @@ class TeeStringIO(io.StringIO):
             >>> redirect = io.TextIOWrapper(io.StringIO())
             >>> assert TeeStringIO(redirect).encoding is redirect.encoding
         """
-        if self.redirect is not None:
-            if hasattr(self.redirect, 'encoding'):
-                return typing.cast(str, self.redirect.encoding)
-            return None
-        else:
-            return super(TeeStringIO, self).encoding
+        pass
 
     def write(self, msg: str) -> int:
         """
@@ -102,9 +90,7 @@ class TeeStringIO(io.StringIO):
         """
         Flush to this and the redirected stream
         """
-        if self.redirect is not None:
-            self.redirect.flush()
-        return super(TeeStringIO, self).flush()
+        pass
 
 
 class CaptureStream:
@@ -187,12 +173,7 @@ class CaptureStdout(CaptureStream):
 
     def log_part(self) -> None:
         """Log what has been captured so far"""
-        assert self.cap_stdout is not None
-        self.cap_stdout.seek(self._pos)
-        text = self.cap_stdout.read()
-        self._pos = self.cap_stdout.tell()
-        self.parts.append(text)
-        self.text = text
+        pass
 
     def start(self) -> None:
         if self.enabled:
@@ -207,9 +188,7 @@ class CaptureStdout(CaptureStream):
             >>> CaptureStdout(enabled=False).stop()
             >>> CaptureStdout(enabled=True).stop()
         """
-        if self.enabled:
-            self.started = False
-            sys.stdout = self.orig_stdout
+        pass
 
     def __enter__(self) -> CaptureStdout:
         self.start()

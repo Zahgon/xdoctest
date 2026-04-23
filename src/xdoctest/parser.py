@@ -700,7 +700,7 @@ class DoctestParser:
             iterable = (line for line in exec_source_lines if line)
 
             def _readline() -> str:
-                return next(iterable)
+                pass
 
             # We cannot eval a statement with a semicolon in it
             # Single should work.

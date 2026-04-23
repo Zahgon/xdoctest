@@ -404,43 +404,7 @@ def _auto_disable_failing_tests_hook(context) -> None:
     Experimental feature to modify code based on failing tests.
     This should likely be moved to its own submodule.
     """
-    from collections import defaultdict
-
-    run_summary = context['run_summary']
-    failing_examples = run_summary['failed']
-    path_to_failed_linos = defaultdict(list)
-    for example in failing_examples:
-        # We could disable at the point of failure, or at the start of the
-        # test. While I'm tempted to use the failing one, as it makes it more
-        # clear what to fix, that introduces potential incompatibility with
-        # got/want style errors, so let's default to the first line.
-        WHERE_INSERT = 'start-of-doctest'
-        failed_line_number = example.failed_lineno()
-        start_line_number = example.lineno
-        if WHERE_INSERT == 'start-of-doctest':
-            insert_line_number = start_line_number
-        elif WHERE_INSERT == 'failing-location':
-            insert_line_number = failed_line_number
-        path_to_failed_linos[example.fpath].append(insert_line_number)
-
-    for fpath, skip_linenos in path_to_failed_linos.items():
-        print('modifying fpath={}'.format(fpath))
-        with open(fpath, 'r') as file:
-            lines = file.readlines()
-        # Insert the lines in reverse order
-        for lineno in sorted(skip_linenos)[::-1]:
-            line_idx = lineno - 1
-            failed_line = lines[line_idx]
-            num_indent_chars = len(failed_line) - len(failed_line.lstrip())
-            indent = failed_line[:num_indent_chars]
-            endl = '\n'  # is there a case we use a different line end?
-            new_line = ''.join([indent, '>>> # xdoctest: +SKIP', endl])
-            # Dont insert the same line twice, its failing for some other reason
-            # Probably a pre-import
-            if failed_line != new_line:
-                lines.insert(line_idx, new_line)
-        with open(fpath, 'w') as file:
-            file.write(''.join(lines))
+    pass
 
 
 def _convert_to_test_module(
@@ -568,13 +532,13 @@ def undefined_names(sourcecode: str) -> set[str]:
             reporter.unexpected = []
 
         def unexpectedError(reporter, filename, msg) -> None:
-            reporter.unexpected.append(msg)
+            pass
 
         def syntaxError(reporter, filename, msg, lineno, offset, text) -> None:
-            reporter.syntax_errors.append(msg)
+            pass
 
         def flake(reporter, message) -> None:
-            reporter.messages.append(message)
+            pass
 
     names = set()
 

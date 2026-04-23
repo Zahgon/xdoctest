@@ -68,16 +68,7 @@ def _importlib_import_modpath(
     Args:
         modname (str): the module name.
     """
-    dpath, rel_modpath = split_modpath(modpath)
-    modname = modpath_to_modname(modpath)
-    import importlib.util
-
-    spec = importlib.util.spec_from_file_location(modname, modpath)
-    assert spec is not None
-    module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
-    spec.loader.exec_module(module)
-    return module
+    pass
 
 
 def _importlib_modname_to_modpath(modname: str) -> str:  # nocover
@@ -112,15 +103,7 @@ def _importlib_modname_to_modpath(modname: str) -> str:  # nocover
         Timed stdlib for: 445407 loops, best of 5
             time per loop: best=387.000 ns, mean=424.680 ± 19.7 ns
     """
-    import importlib.util
-
-    spec = importlib.util.find_spec(modname)
-    assert spec is not None
-    assert spec.origin is not None
-    modpath = spec.origin.replace(
-        '.pyc', '.py'
-    )  # is pyc replace needed anymore?
-    return modpath
+    pass
 
 
 class PythonPathContext:
@@ -628,16 +611,10 @@ def _static_parse(varname: typing.Any, fpath: typing.Any) -> typing.Any:
 
     class StaticVisitor(ast.NodeVisitor):
         def visit_Assign(self, node: ast.Assign) -> None:
-            for target in node.targets:
-                target_id = getattr(target, 'id', None)
-                if target_id == varname:
-                    self.static_value = _parse_static_node_value(node.value)
+            pass
 
         def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
-            target = node.target
-            target_id = getattr(target, 'id', None)
-            if target_id == varname:
-                self.static_value = _parse_static_node_value(node.value)
+            pass
 
     visitor = StaticVisitor()
     visitor.visit(pt)

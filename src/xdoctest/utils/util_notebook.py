@@ -277,28 +277,7 @@ def execute_notebook(
         >>>                       'described [here](https://github.com/nteract/papermill/issues/426)?')
 
     """
-    import logging
-
-    import nbformat
-    from nbconvert.preprocessors import ExecutePreprocessor
-
-    dpath = dirname(ipynb_fpath)
-    ep = ExecutePreprocessor(timeout=timeout)
-    if verbose is None:
-        verbose = 0
-
-    if verbose > 1:
-        print('executing notebook in dpath = {!r}'.format(dpath))
-        ep.log.setLevel(logging.DEBUG)
-    elif verbose > 0:
-        ep.log.setLevel(logging.INFO)
-
-    with open(ipynb_fpath, 'r+') as file:
-        nb = nbformat.read(file, as_version=nbformat.NO_CONVERT)
-    nb, resources = ep.preprocess(nb, {'metadata': {'path': dpath}})
-    # from nbconvert.preprocessors import executenb
-    # nb, resources = executenb(nb, cwd=dpath)
-    return nb, resources
+    pass
 
 
 def _make_test_notebook_fpath(
@@ -315,28 +294,7 @@ def _make_test_notebook_fpath(
         https://stackoverflow.com/questions/38193878/create-notebook-from-code
         https://gist.github.com/fperez/9716279
     """
-    import json
-
-    import jupyter_client.kernelspec
-    import nbformat as nbf
-
-    # TODO: is there an API to generate kernelspec json correctly?
-    kernel_name = jupyter_client.kernelspec.NATIVE_KERNEL_NAME
-    spec = jupyter_client.kernelspec.get_kernel_spec(kernel_name)
-    metadata = {
-        'kernelspec': {
-            'name': kernel_name,
-            'display_name': spec.display_name,
-            'language': spec.language,
-        }
-    }
-    # Use nbformat API to create notebook structure and cell json
-    nb = nbf.v4.new_notebook(metadata=metadata)
-    for source in cell_sources:
-        nb['cells'].append(nbf.v4.new_code_cell(source))
-    with open(fpath, 'w') as file:
-        json.dump(nb, file)
-    return fpath
+    pass
 
 
 if __name__ == '__main__':

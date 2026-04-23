@@ -89,7 +89,7 @@ class DoctestPart:
         Returns:
             int: number of lines in the entire source (i.e. exec + want)
         """
-        return self.n_exec_lines + self.n_want_lines
+        pass
 
     @property
     def n_exec_lines(self) -> int:
@@ -97,7 +97,7 @@ class DoctestPart:
         Returns:
             int: number of executable lines (excluding want)
         """
-        return len(self.exec_lines)
+        pass
 
     @property
     def n_want_lines(self) -> int:
@@ -105,10 +105,7 @@ class DoctestPart:
         Returns:
             int: number of lines in the "want" statement.
         """
-        if self.want_lines:
-            return len(self.want_lines)
-        else:
-            return 0
+        pass
 
     @property
     def source(self) -> str:
@@ -116,7 +113,7 @@ class DoctestPart:
         Returns:
             str: A single block of text representing the source code.
         """
-        return '\n'.join(self.exec_lines)
+        pass
 
     def compilable_source(self) -> str:
         """
@@ -154,9 +151,7 @@ class DoctestPart:
             >>> print(', '.join(list(map(str, self.directives))))
             <Directive(+SKIP)>
         """
-        if self._directives is None:
-            self._directives = list(directive.Directive.extract(self.source))
-        return self._directives
+        pass
 
     @property
     def want(self) -> str | None:
@@ -164,10 +159,7 @@ class DoctestPart:
         Returns:
             str | None: what the test is expected to produce
         """
-        if self.want_lines:
-            return '\n'.join(self.want_lines)
-        else:
-            return None
+        pass
 
     def __nice__(self) -> str:
         """

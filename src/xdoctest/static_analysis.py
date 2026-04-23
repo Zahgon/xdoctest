@@ -229,87 +229,35 @@ class TopLevelVisitor(ast.NodeVisitor):
     def _visit_generic_FunctionDef(
         self, node: ast.FunctionDef | ast.AsyncFunctionDef
     ) -> None:
-        if self._current_classname is None:
-            callname = node.name
-        else:
-            callname = self._current_classname + '.' + node.name
-
-        if node.decorator_list:
-            for decor in node.decorator_list:
-                if isinstance(decor, ast.Name):
-                    if decor.id == 'property':
-                        # likely a getter property
-                        # should we distinguish getters?
-                        # callname = callname + '.fget'
-                        pass
-                if isinstance(decor, ast.Attribute):
-                    # Don't add setters / deleters to the callnames
-                    if decor.attr == 'deleter':
-                        # callname = callname + '.fdel'
-                        return
-                    if decor.attr == 'setter':
-                        # callname = callname + '.fset'
-                        return
-
-        lineno = node.lineno
-        docstr, doclineno, doclineno_end = self._get_docstring(node)
-        calldef = CallDefNode(
-            callname, lineno, docstr, doclineno, doclineno_end, args=node.args
-        )
-        self.calldefs[callname] = calldef
-
-        self._finish_queue.append(calldef)
+        pass
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         """
         Args:
             node (ast.FunctionDef):
         """
-        return self._visit_generic_FunctionDef(node)
+        pass
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
         """
         Args:
             node (ast.AsyncFunctionDef):
         """
-        return self._visit_generic_FunctionDef(node)
+        pass
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         """
         Args:
             node (ast.ClassDef):
         """
-        if self._current_classname is None:
-            callname = node.name
-            self._current_classname = callname
-            docstr, doclineno, doclineno_end = self._get_docstring(node)
-            calldef = CallDefNode(
-                callname, node.lineno, docstr, doclineno, doclineno_end
-            )
-            self.calldefs[callname] = calldef
-
-            self.generic_visit(node)
-            self._current_classname = None
-
-            self._finish_queue.append(calldef)
+        pass
 
     def visit_Module(self, node: ast.Module) -> None:
         """
         Args:
             node (ast.Module):
         """
-        # get the module level docstr
-        docstr, doclineno, doclineno_end = self._get_docstring(node)
-        if docstr:
-            # the module level docstr is not really a calldef, but parse it for
-            # backwards compatibility.
-            callname = '__doc__'
-            calldef = CallDefNode(
-                callname, doclineno, docstr, doclineno, doclineno_end
-            )
-            self.calldefs[callname] = calldef
-
-        self.generic_visit(node)
+        pass
         # self._finish_queue.append(calldef)
 
     def visit_Assign(self, node: ast.Assign) -> None:
@@ -317,49 +265,14 @@ class TopLevelVisitor(ast.NodeVisitor):
         Args:
             node (ast.Assign):
         """
-        # print('VISIT FunctionDef node = %r' % (node,))
-        # print('VISIT FunctionDef node = %r' % (node.__dict__,))
-        if self._current_classname is None:
-            for target in node.targets:
-                if hasattr(target, 'id'):
-                    self.assignments.append(target.id)
-            # print('node.value = %r' % (node.value,))
-            # TODO: assign constants to
-            # self.const_lookup
-        self.generic_visit(node)
+        pass
 
     def visit_If(self, node: ast.If) -> None:
         """
         Args:
             node (ast.If):
         """
-        if isinstance(node.test, ast.Compare):  # pragma: nobranch
-            try:
-                if IS_PY_GE_312:
-                    if all(
-                        [
-                            isinstance(node.test.ops[0], ast.Eq),
-                            getattr(node.test.left, 'id', None) == '__name__',
-                            getattr(node.test.comparators[0], 'value', None)
-                            == '__main__',
-                        ]
-                    ):
-                        # Ignore main block
-                        return
-                else:
-                    if all(
-                        [
-                            isinstance(node.test.ops[0], ast.Eq),
-                            getattr(node.test.left, 'id', None) == '__name__',
-                            getattr(node.test.comparators[0], 's', None)
-                            == '__main__',
-                        ]
-                    ):
-                        # Ignore main block
-                        return
-            except Exception:  # nocover
-                pass
-        self.generic_visit(node)  # nocover
+        pass
 
     # def visit_ExceptHandler(self, node):
     #     pass
@@ -440,45 +353,7 @@ class TopLevelVisitor(ast.NodeVisitor):
             >>>     print('want = {!r}'.format(want))
             >>>     assert got == want
         """
-        # lineno points to the last line of a string in CPython < 3.8
-        if hasattr(docnode, 'end_lineno'):
-            assert docnode.end_lineno is not None
-            endpos = docnode.end_lineno - 1
-        else:
-            if PLAT_IMPL == 'PyPy':
-                startpos = docnode.lineno - 1
-                if IS_PY_GE_312:
-                    docstr = utils.ensure_unicode(docnode.value.value)  # type: ignore
-                else:
-                    docstr = utils.ensure_unicode(docnode.value.s)  # type: ignore
-                sourcelines = self.sourcelines
-                assert sourcelines is not None
-                start, stop = self._find_docstr_endpos_workaround(
-                    docstr, sourcelines, startpos
-                )
-                # Convert 0-based line positions to 1-based line numbers
-                doclineno = start + 1
-                doclineno_end = stop + 1
-                return doclineno, doclineno_end
-            else:
-                # Hack for older versions
-                # TODO: fix in pypy
-                endpos = docnode.lineno - 1
-
-        if IS_PY_GE_312:
-            docstr = utils.ensure_unicode(docnode.value.value)  # type: ignore
-        else:
-            docstr = utils.ensure_unicode(docnode.value.s)  # type: ignore
-        sourcelines = self.sourcelines
-        assert sourcelines is not None
-        start, stop = self._find_docstr_startpos_workaround(
-            docstr, sourcelines, endpos
-        )
-        # Convert 0-based line positions to 1-based line numbers
-        doclineno = start + 1
-        doclineno_end = stop
-        # print('docnode = {!r}'.format(docnode))
-        return doclineno, doclineno_end
+        pass
 
     @classmethod
     def _find_docstr_endpos_workaround(
@@ -516,31 +391,7 @@ class TopLevelVisitor(ast.NodeVisitor):
             >>> start, stop = TopLevelVisitor._find_docstr_endpos_workaround(docstr, sourcelines, startpos)
             >>> assert (start, stop) == (0, 0)
         """
-        start = startpos
-        stop = startpos
-        startline = sourcelines[start]
-
-        trips = ("'''", '"""')
-        for trip in trips:
-            if startline.strip().startswith((trip, 'r' + trip)):
-                nlines = docstr.count('\n')
-                # assuming that the docstr is actually terminated with this
-                # kind of triple quote, then the end line is at this position
-                cand_stop_ = start + nlines
-                endline = sourcelines[cand_stop_]
-
-                endpat = re.escape(trip) + r'\s*#.*$'
-                endline_ = re.sub(endpat, trip, endline).strip()
-
-                # The startline should also begin with the same triple quote
-                # Account for raw strings. Note f-strings cannot be docstrings
-                if endline_.endswith(trip):
-                    stop = cand_stop_
-                    break
-                else:
-                    # Conditions failed, revert to assuming a one-line string.
-                    stop = start
-        return start, stop
+        pass
 
     def _find_docstr_startpos_workaround(
         self, docstr: str, sourcelines: list[str], endpos: int
@@ -655,50 +506,7 @@ class TopLevelVisitor(ast.NodeVisitor):
             >>>         raise AssertionError('docstr workaround is failing')
             >>>     print('----------')
         """
-        # First assume a one-line string that starts and stops on the same line
-        start = endpos
-        stop = endpos + 1
-        endline = sourcelines[stop - 1]
-
-        # Determine if the docstring is a triple quoted string, by trying both
-        # triple quote styles and checking if the string starts and ends with
-        # the same style. If both cases are true we know we are in a triple
-        # quoted string literal and can therefore safely extract the starting
-        # line position.
-        trips = ("'''", '"""')
-        for trip in trips:
-            pattern = re.escape(trip) + r'\s*#.*$'
-            # Assuming the multiline string is using `trip` as the triple quote
-            # format, then the first instance of that pattern must terminate
-            # the string literal. Afterwards the only valid characters are
-            # whitespace and comments. Anything after the comment can be
-            # ignored. The above pattern will match the first triple quote it
-            # sees, and then will remove any trailing comments.
-            endline_ = re.sub(pattern, trip, endline).strip()
-            # After removing comments, if the endline endswith a triple quote,
-            # then we must be in a multiline string IF the startline starts
-            # with that same triple quote. We should be able to determine where
-            # the startline is because we know how many newline characters are
-            # in the extracted docstring. This works because all newline
-            # characters in multiline string literals MUST correspond to actual
-            # newlines in the source code.
-            if endline_.endswith(trip):
-                nlines = docstr.count('\n')
-                # assuming that the docstr is actually terminated with this
-                # kind of triple quote, then the start line is at this position
-                cand_start_ = stop - nlines - 1
-                startline = sourcelines[cand_start_]
-
-                # The startline should also begin with the same triple quote
-                # Account for raw strings. Note f-strings cannot be docstrings
-                if startline.strip().startswith((trip, 'r' + trip)):
-                    # Both conditions pass.
-                    start = cand_start_
-                    break
-                else:
-                    # Conditions failed, revert to assuming a one-line string.
-                    start = stop - 1
-        return start, stop
+        pass
 
     def _get_docstring(
         self, node: DocNode
@@ -718,14 +526,7 @@ class TopLevelVisitor(ast.NodeVisitor):
             >>> self._get_docstring(node)
             ('docstr', 2, 2)
         """
-        docstr = ast.get_docstring(node, clean=False)
-        if docstr is not None:
-            docnode = node.body[0]  # type: ignore
-            doclineno, doclineno_end = self._docnode_line_workaround(docnode)
-        else:
-            doclineno = None
-            doclineno_end = None
-        return (docstr, doclineno, doclineno_end)
+        pass
 
 
 def parse_static_calldefs(
@@ -883,30 +684,7 @@ def parse_static_value(
         >>> #parse_static_value('bar', source=source)
         >>> #parse_static_value('bar', source='foo=1; bar = [1, foo]')
     """
-    if source is None:  # pragma: no branch
-        assert fpath is not None
-        try:
-            with open(fpath, 'rb') as file_:
-                source = file_.read().decode('utf-8')
-        except Exception:
-            with open(fpath, 'rb') as file_:
-                source = file_.read()
-    pt = ast.parse(source)
-
-    class AssignentVisitor(ast.NodeVisitor):
-        def visit_Assign(self, node: ast.Assign) -> None:
-            for target in node.targets:
-                target_id = getattr(target, 'id', None)
-                if target_id == key:
-                    self.value = _parse_static_node_value(node.value)
-
-    sentinel = object()
-    visitor = AssignentVisitor()
-    visitor.value = sentinel
-    visitor.visit(pt)
-    if visitor.value is sentinel:
-        raise NameError('No static variable named {!r}'.format(key))
-    return visitor.value
+    pass
 
 
 def package_modpaths(
@@ -1067,7 +845,7 @@ def is_balanced_statement(
     iterable = (line for line in lines if line)
 
     def _readline() -> str:
-        return next(iterable)
+        pass
 
     try:
         for t in tokenize.generate_tokens(_readline):
@@ -1141,7 +919,7 @@ def extract_comments(source: str | list[str]) -> typing.Iterator[str]:
     iterable = (line for line in lines if line)
 
     def _readline() -> str:
-        return next(iterable)
+        pass
 
     try:
         for t in tokenize.generate_tokens(_readline):
@@ -1193,60 +971,7 @@ def _strip_hashtag_comments_and_newlines(source: str | list[str]) -> str:
         >>> assert non_comments.count(chr(10)) == 10
         >>> assert non_comments.count('#') == 1
     """
-    readline: typing.Callable
-    if isinstance(source, str):
-        import io
-
-        f = io.StringIO(source)
-        readline = f.readline
-    else:
-        readline = iter(source).__next__
-
-    def strip_hashtag_comments(
-        tokens: typing.Iterator[tuple],
-    ) -> typing.Iterator[tuple]:
-        """
-        Drop comment tokens from a `tokenize` stream.
-        """
-        return (t for t in tokens if t[0] != tokenize.COMMENT)
-
-    def strip_consecutive_newlines(
-        tokens: typing.Iterator[tuple],
-    ) -> typing.Iterator[tuple]:
-        """
-        Consecutive newlines are dropped and trailing whitespace
-
-        Adapted from: https://github.com/mitogen-hq/mitogen/blob/master/mitogen/minify.py#L65
-        """
-        prev_typ = None
-        prev_end_col = 0
-        skipped_rows = 0
-        for token_info in tokens:
-            typ, tok, (start_row, start_col), (end_row, end_col), line = (
-                token_info
-            )
-            if typ in (tokenize.NL, tokenize.NEWLINE):
-                if prev_typ in (tokenize.NL, tokenize.NEWLINE, None):
-                    skipped_rows += 1
-                    continue
-                else:
-                    start_col = prev_end_col
-                end_col = start_col + 1
-            prev_typ = typ
-            prev_end_col = end_col
-            yield (
-                typ,
-                tok,
-                (start_row - skipped_rows, start_col),
-                (end_row - skipped_rows, end_col),
-                line,
-            )
-
-    tokens = tokenize.generate_tokens(readline)
-    tokens = strip_hashtag_comments(tokens)
-    tokens = strip_consecutive_newlines(tokens)
-    new_source = tokenize.untokenize(tokens)
-    return new_source
+    pass
 
 
 if __name__ == '__main__':
